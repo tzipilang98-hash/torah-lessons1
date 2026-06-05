@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>עיבוד שיעורי תורה</title>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300;400;500;700&family=Heebo:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#faf8f4;--bg2:#f2ede4;--bg3:#e8e0d0;--card:#fff;--border:#d4c9b0;--border2:#c4b899;
+    --text:#2a1f0e;--text2:#6b5a3e;--text3:#9c8a6e;--accent:#7c4a1e;--accent2:#a0622a;--accent-bg:#f5ebe0;
+    --gold:#c9951a;--gold-bg:#fdf6e3;--success:#2d6a4f;--success-bg:#e8f5ee;--danger:#8b1a1a;--danger-bg:#fce8e8;
+    --shadow:0 2px 12px rgba(42,31,14,.08);--shadow2:0 4px 24px rgba(42,31,14,.12);--radius:10px;--radius2:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;direction:rtl;}
+  .header{background:var(--accent);color:#fff;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+  .header-title{font-family:'Frank Ruhl Libre',serif;font-size:1.4rem;font-weight:700;}
+  .header-nav{display:flex;gap:4px;}
+  .nav-btn{background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:'Heebo',sans-serif;font-size:.85rem;transition:all .2s;}
+  .nav-btn:hover,.nav-btn.active{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.6);}
+  .settings-btn{background:transparent;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:1.3rem;padding:4px 8px;border-radius:6px;transition:all .2s;}
+  .settings-btn:hover{color:#fff;background:rgba(255,255,255,.1);}
+  .page{display:none;max-width:860px;margin:0 auto;padding:2rem 1.5rem;}
+  .page.active{display:block;}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--card);border-radius:var(--radius2);padding:2rem;width:90%;max-width:500px;box-shadow:var(--shadow2);max-height:90vh;overflow-y:auto;}
+  .modal h2{font-family:'Frank Ruhl Libre',serif;font-size:1.3rem;margin-bottom:1.5rem;color:var(--accent);}
+  .modal-close{float:left;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text3);}
+  .form-group{margin-bottom:1.25rem;}
+  .form-label{display:block;font-size:.85rem;font-weight:500;color:var(--text2);margin-bottom:6px;}
+  .required{color:var(--accent);margin-right:2px;}
+  input[type=text],input[type=number],textarea,select{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);font-family:'Heebo',sans-serif;font-size:.95rem;background:var(--card);color:var(--text);transition:border-color .2s,box-shadow .2s;outline:none;}
+  input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(124,74,30,.1);}
+  input.field-error{border-color:var(--danger)!important;box-shadow:0 0 0 3px rgba(139,26,26,.1)!important;}
+  textarea{resize:vertical;line-height:1.7;min-height:200px;}
+  select{cursor:pointer;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.5rem;box-shadow:var(--shadow);}
+  .card+.card{margin-top:1.25rem;}
+  .card-title{font-family:'Frank Ruhl Libre',serif;font-size:1.1rem;font-weight:500;color:var(--accent);margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid var(--border);}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:var(--radius);border:none;cursor:pointer;font-family:'Heebo',sans-serif;font-size:.9rem;font-weight:500;transition:all .2s;}
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(124,74,30,.3);}
+  .btn-primary:disabled{background:var(--text3);cursor:not-allowed;transform:none;box-shadow:none;}
+  .btn-secondary{background:var(--bg2);border:1px solid var(--border);color:var(--text2);}
+  .btn-secondary:hover{background:var(--bg3);}
+  .btn-danger{background:var(--danger-bg);border:1px solid #f5c6c6;color:var(--danger);}
+  .btn-danger:hover{background:#f8d4d4;}
+  .btn-sm{padding:6px 12px;font-size:.8rem;}
+  .btn-process{padding:14px 32px;font-size:1.05rem;font-weight:600;width:100%;justify-content:center;margin-top:1rem;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  .tabs{display:flex;gap:4px;border-bottom:2px solid var(--border);margin-bottom:1.5rem;flex-wrap:wrap;}
+  .tab{padding:9px 16px;border:none;background:transparent;cursor:pointer;font-family:'Heebo',sans-serif;font-size:.85rem;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px;border-radius:6px 6px 0 0;transition:all .2s;white-space:nowrap;}
+  .tab:hover{color:var(--accent);background:var(--accent-bg);}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;background:var(--accent-bg);}
+  .tab-content{display:none;}
+  .tab-content.active{display:block;}
+  .result-text{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;line-height:1.9;font-size:.95rem;white-space:pre-wrap;max-height:520px;overflow-y:auto;font-family:'Frank Ruhl Libre',serif;}
+  .result-actions{display:flex;gap:8px;margin-bottom:.75rem;flex-wrap:wrap;}
+  .library-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius2);padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1rem;transition:box-shadow .2s;}
+  .library-item:hover{box-shadow:var(--shadow2);}
+  .library-item+.library-item{margin-top:.75rem;}
+  .library-item-info{flex:1;}
+  .library-item-title{font-family:'Frank Ruhl Libre',serif;font-size:1rem;font-weight:500;}
+  .library-item-meta{font-size:.8rem;color:var(--text3);margin-top:3px;}
+  .library-item-actions{display:flex;gap:6px;flex-wrap:wrap;}
+  .lib-icon{width:44px;height:44px;background:var(--accent-bg);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+  .tag{display:inline-block;background:var(--gold-bg);border:1px solid #e8d080;color:#7a5c10;font-size:.75rem;padding:2px 10px;border-radius:20px;margin:2px;}
+  .loading-overlay{display:none;position:fixed;inset:0;background:rgba(250,248,244,.93);z-index:150;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;}
+  .loading-overlay.show{display:flex;}
+  .spinner{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{font-family:'Frank Ruhl Libre',serif;font-size:1.1rem;color:var(--text2);}
+  .loading-steps{font-size:.82rem;color:var(--text3);text-align:center;line-height:1.8;}
+  .progress-bar{width:260px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .4s;}
+  .search-bar{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap;}
+  .search-input{flex:1;min-width:160px;}
+  mark{background:#ffe082;color:var(--text);border-radius:2px;padding:0 2px;}
+  .meta-table{width:100%;}
+  .meta-table td{padding:7px 0;font-size:.9rem;border-bottom:1px solid var(--bg2);}
+  .meta-table td:first-child{color:var(--text2);width:150px;font-weight:500;}
+  .alert{padding:12px 16px;border-radius:var(--radius);font-size:.88rem;margin-bottom:1rem;line-height:1.6;}
+  .alert-warning{background:#fff8e1;border:1px solid #ffe082;color:#7a5c10;}
+  .alert-success{background:var(--success-bg);border:1px solid #a8d5bc;color:var(--success);}
+  .alert-error{background:var(--danger-bg);border:1px solid #f5c6c6;color:var(--danger);}
+  .alert-info{background:var(--accent-bg);border:1px solid #d4b08c;color:var(--accent);}
+  .quality-panel{margin-bottom:1.25rem;}
+  .quality-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:.85rem;border-bottom:1px solid var(--bg2);}
+  .quality-icon{font-size:1rem;width:20px;text-align:center;}
+  .section-title{font-family:'Frank Ruhl Libre',serif;font-size:1.5rem;font-weight:500;color:var(--text);margin-bottom:.25rem;}
+  .section-sub{font-size:.88rem;color:var(--text3);margin-bottom:1.5rem;}
+  .file-upload-area{border:2px dashed var(--border2);border-radius:var(--radius);padding:1.5rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg);margin-top:.75rem;}
+  .file-upload-area:hover{border-color:var(--accent2);background:var(--accent-bg);}
+  .word-count{font-size:.78rem;color:var(--text3);text-align:left;margin-top:4px;}
+  .source-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--bg2);}
+  .source-dot{width:8px;height:8px;background:var(--gold);border-radius:50%;margin-top:6px;flex-shrink:0;}
+  .ornament{text-align:center;color:var(--gold);font-size:1.2rem;letter-spacing:.4em;margin:.5rem 0;}
+  .empty-state{text-align:center;padding:4rem 2rem;color:var(--text3);}
+  .empty-state .ei{font-size:3rem;margin-bottom:1rem;}
+  .version-badge{display:inline-block;background:var(--bg2);border:1px solid var(--border);border-radius:20px;font-size:.75rem;padding:2px 10px;color:var(--text2);margin-left:6px;}
+  .version-badge.current{background:var(--accent-bg);border-color:var(--accent2);color:var(--accent);}
+  .draft-banner{background:var(--accent-bg);border:1px solid var(--border2);border-radius:var(--radius);padding:8px 14px;font-size:.82rem;color:var(--accent);margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;}
+  @media(max-width:600px){.grid-2{grid-template-columns:1fr;}.header{padding:0 1rem;}.page{padding:1.25rem 1rem;}.header-title{font-size:1.1rem;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">📖 עיבוד שיעורי תורה</div>
+  <div class="header-nav">
+    <button class="nav-btn active" onclick="showPage('new-lesson')">שיעור חדש</button>
+    <button class="nav-btn" onclick="showPage('library')">ספרייה</button>
+    <button class="nav-btn" id="result-nav-btn" style="display:none" onclick="showPage('result')">תוצאה</button>
+  </div>
+  <button class="settings-btn" onclick="openSettings()">⚙</button>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">מעבד את השיעור...</div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:5%"></div></div>
+  <div class="loading-steps" id="loading-steps">אנא המתן</div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeSettings()">✕</button>
+    <h2>⚙ הגדרות</h2>
+    <div class="form-group">
+      <label class="form-label">מפתח API של Anthropic <span class="required">*</span></label>
+      <input type="text" id="api-key-input" placeholder="sk-ant-api03-..." style="font-family:monospace;font-size:.82rem;">
+      <div style="font-size:.78rem;color:var(--text3);margin-top:5px;">המפתח נשמר בדפדפן שלך בלבד</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">שם הרב ברירת מחדל</label>
+      <input type="text" id="default-rabbi-input" placeholder="הרב ...">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:1rem;">
+      <button class="btn btn-primary" onclick="saveSettings()">שמור</button>
+      <button class="btn btn-secondary" onclick="closeSettings()">ביטול</button>
+    </div>
+    <div id="settings-msg" style="margin-top:.75rem;font-size:.85rem;"></div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal">
+    <h2 id="confirm-title">אישור</h2>
+    <p id="confirm-msg" style="margin-bottom:1.5rem;color:var(--text2);line-height:1.7;"></p>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-danger" id="confirm-ok-btn">אשר</button>
+      <button class="btn btn-secondary" onclick="closeConfirm()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- QUALITY MODAL -->
+<div class="modal-overlay" id="quality-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('quality-modal').classList.remove('open')">✕</button>
+    <h2>🔍 דוח בדיקת איכות</h2>
+    <div id="quality-report"></div>
+    <div style="margin-top:1.25rem;display:flex;gap:8px;">
+      <button class="btn btn-primary" onclick="document.getElementById('quality-modal').classList.remove('open');showPage('result')">הצג תוצאה</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('quality-modal').classList.remove('open')">סגור</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: NEW LESSON -->
+<div class="page active" id="page-new-lesson">
+  <div class="section-title">שיעור חדש</div>
+  <div class="section-sub">הכנס את פרטי השיעור והתמלול לעיבוד</div>
+
+  <div id="draft-banner" class="draft-banner" style="display:none">
+    📝 נמצאה טיוטה שמורה
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-sm btn-primary" onclick="restoreDraft()">שחזר</button>
+      <button class="btn btn-sm btn-secondary" onclick="clearDraft()">מחק</button>
+    </div>
+  </div>
+
+  <div id="no-api-alert" class="alert alert-warning" style="display:none">
+    ⚠ לא הוגדר מפתח API. <a href="#" onclick="openSettings();return false;" style="color:var(--accent);font-weight:500;">לחץ כאן</a>
+  </div>
+
+  <div class="card">
+    <div class="card-title">פרטי השיעור</div>
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">שם הרב <span class="required">*</span></label>
+        <input type="text" id="rabbi-name" placeholder="לדוגמה: הרב ישראל ישראלי" oninput="saveDraft()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">מספר שיעור <span class="required">*</span></label>
+        <input type="text" id="lesson-number" placeholder="לדוגמה: שיעור 12 / חלק ב׳" oninput="saveDraft()">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">נושא השיעור <span style="color:var(--text3);font-weight:400;">(יוצע אוטומטית)</span></label>
+      <input type="text" id="lesson-topic" placeholder="ניתן להשאיר ריק — יוצע אוטומטית" oninput="saveDraft()">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">תמלול השיעור</div>
+    <div class="form-group">
+      <textarea id="transcription-input" placeholder="הדבק כאן את תמלול השיעור הגולמי..." rows="12" oninput="updateWordCount();saveDraft()"></textarea>
+      <div class="word-count" id="word-count-display">0 מילים</div>
+    </div>
+    <div class="file-upload-area" onclick="document.getElementById('file-input').click()">
+      <div style="font-size:1.5rem;">📄</div>
+      <div style="font-size:.9rem;font-weight:500;margin-top:4px;">העלה קובץ טקסט</div>
+      <p style="font-size:.85rem;color:var(--text3);margin-top:4px;">לחץ לבחירת קובץ TXT</p>
+    </div>
+    <input type="file" id="file-input" accept=".txt,.md" style="display:none" onchange="loadFile(event)">
+  </div>
+
+  <div class="card">
+    <div class="card-title">הגדרות עיבוד</div>
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">שלב 3 — סיכום בינוני</label>
+        <select id="stage3-level">
+          <option value="long">ארוך (~70%)</option>
+          <option value="medium" selected>בינוני (~60%)</option>
+          <option value="short">קצר (~45%)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">שלב 4 — נקודות</label>
+        <select id="stage4-level">
+          <option value="detailed">נקודות מפורטות</option>
+          <option value="medium" selected>נקודות בינוניות</option>
+          <option value="short">נקודות קצרות מאוד</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">תגיות (מופרדות בפסיק)</label>
+      <input type="text" id="lesson-tags" placeholder="לדוגמה: ראש השנה, תשובה, ימים נוראים" oninput="saveDraft()">
+    </div>
+  </div>
+
+  <button class="btn btn-primary btn-process" id="process-btn" onclick="processLesson()">✨ עבד את השיעור</button>
+</div>
+
+<!-- PAGE: RESULT -->
+<div class="page" id="page-result">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem;">
+    <div>
+      <div class="section-title" id="result-main-title">תוצאת עיבוד</div>
+      <div class="section-sub" id="result-sub-title"></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-secondary btn-sm" onclick="exportTXT()">💾 TXT</button>
+      <button class="btn btn-secondary btn-sm" onclick="copyAll()">📋 העתק הכל</button>
+      <button class="btn btn-secondary btn-sm" onclick="showQuality()">🔍 איכות</button>
+      <button class="btn btn-primary btn-sm" onclick="saveToLibrary()">🔖 שמור</button>
+    </div>
+  </div>
+
+  <div id="quality-alerts-container"></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('tab-meta')">📋 פרטים</button>
+    <button class="tab" onclick="switchTab('tab-original')">📝 מקורי</button>
+    <button class="tab" onclick="switchTab('tab-stage1')">שלב 1</button>
+    <button class="tab" onclick="switchTab('tab-stage2')">שלב 2</button>
+    <button class="tab" onclick="switchTab('tab-stage3')">שלב 3</button>
+    <button class="tab" onclick="switchTab('tab-stage4')">שלב 4</button>
+    <button class="tab" onclick="switchTab('tab-sources')">📚 מקורות</button>
+    <button class="tab" onclick="switchTab('tab-search')">🔍 חיפוש</button>
+    <button class="tab" onclick="switchTab('tab-versions')">📁 גרסאות</button>
+  </div>
+
+  <div class="tab-content active" id="tab-meta">
+    <div class="card">
+      <div class="ornament">✦ ✦ ✦</div>
+      <table class="meta-table">
+        <tr><td>שם הרב</td><td id="meta-rabbi"></td></tr>
+        <tr><td>מספר שיעור</td><td id="meta-number"></td></tr>
+        <tr><td>נושא השיעור</td><td id="meta-topic" style="font-weight:500;"></td></tr>
+        <tr><td>תאריך עיבוד</td><td id="meta-date"></td></tr>
+        <tr><td>מילים מקוריות</td><td id="meta-words"></td></tr>
+        <tr><td>רמת שלב 3</td><td id="meta-s3"></td></tr>
+        <tr><td>רמת שלב 4</td><td id="meta-s4"></td></tr>
+        <tr><td>תגיות</td><td id="meta-tags"></td></tr>
+        <tr><td>גרסה</td><td id="meta-version"></td></tr>
+      </table>
+      <div class="ornament" style="margin-top:1rem;">✦ ✦ ✦</div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-original">
+    <div class="result-actions"><button class="btn btn-secondary btn-sm" onclick="copyStage('original')">📋 העתק</button></div>
+    <div class="result-text" id="result-original"></div>
+  </div>
+  <div class="tab-content" id="tab-stage1">
+    <div class="result-actions"><button class="btn btn-secondary btn-sm" onclick="copyStage('stage1')">📋 העתק שלב 1</button></div>
+    <div class="result-text" id="result-stage1"></div>
+  </div>
+  <div class="tab-content" id="tab-stage2">
+    <div class="result-actions"><button class="btn btn-secondary btn-sm" onclick="copyStage('stage2')">📋 העתק שלב 2</button></div>
+    <div class="result-text" id="result-stage2"></div>
+  </div>
+  <div class="tab-content" id="tab-stage3">
+    <div class="result-actions"><button class="btn btn-secondary btn-sm" onclick="copyStage('stage3')">📋 העתק שלב 3</button></div>
+    <div class="result-text" id="result-stage3"></div>
+  </div>
+  <div class="tab-content" id="tab-stage4">
+    <div class="result-actions"><button class="btn btn-secondary btn-sm" onclick="copyStage('stage4')">📋 העתק שלב 4</button></div>
+    <div class="result-text" id="result-stage4"></div>
+  </div>
+
+  <div class="tab-content" id="tab-sources">
+    <div class="card">
+      <div class="card-title">📚 מקורות שהוזכרו בשיעור</div>
+      <div id="result-sources"></div>
+      <div id="sources-warnings" style="margin-top:.75rem;"></div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-search">
+    <div class="card">
+      <div class="card-title">🔍 חיפוש בתוך השיעור</div>
+      <div class="search-bar">
+        <input type="text" class="search-input" id="in-search-input" placeholder="הקלד מילה או ביטוי..." oninput="searchInLesson()">
+        <select id="search-type" onchange="searchInLesson()" style="width:auto;">
+          <option value="all">כל המילים</option>
+          <option value="any">אחת מהמילים</option>
+          <option value="exact">ביטוי מדויק</option>
+        </select>
+        <select id="search-scope" onchange="searchInLesson()" style="width:auto;">
+          <option value="all-stages">כל השלבים</option>
+          <option value="stage1">שלב 1</option>
+          <option value="stage2">שלב 2</option>
+          <option value="stage3">שלב 3</option>
+          <option value="stage4">שלב 4</option>
+          <option value="original">מקורי</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="clearSearch()">נקה</button>
+      </div>
+      <div id="search-nav" style="display:none;margin-bottom:.75rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-secondary btn-sm" onclick="navSearch(-1)">◀ הקודם</button>
+        <span id="search-nav-label" style="font-size:.85rem;color:var(--text2);"></span>
+        <button class="btn btn-secondary btn-sm" onclick="navSearch(1)">הבא ▶</button>
+      </div>
+      <div id="search-results-info" style="font-size:.82rem;color:var(--text3);margin-bottom:.75rem;"></div>
+      <div id="search-results-container"></div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-versions">
+    <div class="card">
+      <div class="card-title">📁 גרסאות השיעור</div>
+      <div id="versions-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: LIBRARY -->
+<div class="page" id="page-library">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem;">
+    <div>
+      <div class="section-title">ספריית שיעורים</div>
+      <div class="section-sub" id="library-count-sub">0 שיעורים שמורים</div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:1.25rem;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <input type="text" id="lib-search-input" placeholder="חיפוש לפי רב, נושא, תגית, תוכן..." style="flex:1;min-width:180px;" oninput="filterLibrary()">
+      <select id="lib-filter-rabbi" onchange="filterLibrary()" style="width:auto;">
+        <option value="">כל הרבנים</option>
+      </select>
+    </div>
+  </div>
+  <div id="library-list"></div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let currentLesson = null;
+let lessons = [];
+let settings = { apiKey:'', defaultRabbi:'' };
+let searchResults = [];
+let searchIdx = 0;
+let draftTimer = null;
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  loadFromStorage();
+  checkApiKey();
+  checkDraft();
+  renderLibrary();
+}
+
+function loadFromStorage() {
+  try {
+    const s = localStorage.getItem('torah_settings');
+    if (s) settings = JSON.parse(s);
+    const l = localStorage.getItem('torah_lessons');
+    if (l) lessons = JSON.parse(l);
+    if (settings.apiKey) document.getElementById('api-key-input').value = settings.apiKey;
+    if (settings.defaultRabbi) {
+      document.getElementById('default-rabbi-input').value = settings.defaultRabbi;
+      document.getElementById('rabbi-name').value = settings.defaultRabbi;
+    }
+  } catch(e){}
+}
+
+function saveToStorage() {
+  localStorage.setItem('torah_settings', JSON.stringify(settings));
+  localStorage.setItem('torah_lessons', JSON.stringify(lessons));
+}
+
+function checkApiKey() {
+  document.getElementById('no-api-alert').style.display = settings.apiKey ? 'none' : 'block';
+}
+
+// ============================================================
+// DRAFT (auto-save)
+// ============================================================
+function saveDraft() {
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(() => {
+    const draft = {
+      rabbi: document.getElementById('rabbi-name').value,
+      lessonNum: document.getElementById('lesson-number').value,
+      topic: document.getElementById('lesson-topic').value,
+      text: document.getElementById('transcription-input').value,
+      tags: document.getElementById('lesson-tags').value,
+      s3: document.getElementById('stage3-level').value,
+      s4: document.getElementById('stage4-level').value,
+      ts: Date.now()
+    };
+    if (draft.text.length > 20 || draft.rabbi.length > 1) {
+      localStorage.setItem('torah_draft', JSON.stringify(draft));
+    }
+  }, 1500);
+}
+
+function checkDraft() {
+  try {
+    const d = localStorage.getItem('torah_draft');
+    if (!d) return;
+    const draft = JSON.parse(d);
+    if (draft.text && draft.text.length > 50) {
+      document.getElementById('draft-banner').style.display = 'flex';
+    }
+  } catch(e){}
+}
+
+function restoreDraft() {
+  try {
+    const d = JSON.parse(localStorage.getItem('torah_draft'));
+    if (!d) return;
+    document.getElementById('rabbi-name').value = d.rabbi || '';
+    document.getElementById('lesson-number').value = d.lessonNum || '';
+    document.getElementById('lesson-topic').value = d.topic || '';
+    document.getElementById('transcription-input').value = d.text || '';
+    document.getElementById('lesson-tags').value = d.tags || '';
+    if (d.s3) document.getElementById('stage3-level').value = d.s3;
+    if (d.s4) document.getElementById('stage4-level').value = d.s4;
+    updateWordCount();
+    document.getElementById('draft-banner').style.display = 'none';
+    showToast('טיוטה שוחזרה ✓');
+  } catch(e){}
+}
+
+function clearDraft() {
+  localStorage.removeItem('torah_draft');
+  document.getElementById('draft-banner').style.display = 'none';
+  showToast('טיוטה נמחקה');
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const map = {'new-lesson':0,'library':1,'result':2};
+  const btns = document.querySelectorAll('.nav-btn');
+  if (map[page] !== undefined) btns[map[page]]?.classList.add('active');
+  if (page === 'library') renderLibrary();
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function openSettings() { document.getElementById('settings-modal').classList.add('open'); }
+function closeSettings() { document.getElementById('settings-modal').classList.remove('open'); }
+function saveSettings() {
+  settings.apiKey = document.getElementById('api-key-input').value.trim();
+  settings.defaultRabbi = document.getElementById('default-rabbi-input').value.trim();
+  saveToStorage(); checkApiKey();
+  document.getElementById('settings-msg').innerHTML = '<span style="color:var(--success)">✓ נשמר</span>';
+  setTimeout(() => { document.getElementById('settings-msg').innerHTML = ''; closeSettings(); }, 1000);
+}
+
+// ============================================================
+// WORD COUNT & FILE
+// ============================================================
+function updateWordCount() {
+  const txt = document.getElementById('transcription-input').value;
+  const n = txt.trim() ? txt.trim().split(/\s+/).length : 0;
+  document.getElementById('word-count-display').textContent = n.toLocaleString('he-IL') + ' מילים';
+}
+
+function loadFile(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('transcription-input').value = ev.target.result;
+    updateWordCount(); saveDraft();
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#page-result .tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  const order = ['tab-meta','tab-original','tab-stage1','tab-stage2','tab-stage3','tab-stage4','tab-sources','tab-search','tab-versions'];
+  const idx = order.indexOf(tabId);
+  document.querySelectorAll('#page-result .tab')[idx]?.classList.add('active');
+}
+
+// ============================================================
+// VALIDATION
+// ============================================================
+function validateFields() {
+  const rabbi = document.getElementById('rabbi-name').value.trim();
+  const lessonNum = document.getElementById('lesson-number').value.trim();
+  const text = document.getElementById('transcription-input').value.trim();
+  let errors = [];
+  let firstError = null;
+
+  // clear previous
+  ['rabbi-name','lesson-number','transcription-input'].forEach(id => {
+    document.getElementById(id).classList.remove('field-error');
+  });
+
+  if (!rabbi) {
+    errors.push('שם הרב');
+    document.getElementById('rabbi-name').classList.add('field-error');
+    firstError = firstError || 'rabbi-name';
+  }
+  if (!lessonNum) {
+    errors.push('מספר שיעור');
+    document.getElementById('lesson-number').classList.add('field-error');
+    firstError = firstError || 'lesson-number';
+  }
+  if (!text) {
+    errors.push('תמלול השיעור');
+    document.getElementById('transcription-input').classList.add('field-error');
+    firstError = firstError || 'transcription-input';
+  }
+
+  if (errors.length) {
+    showAlert('יש למלא את השדות הבאים לפני עיבוד השיעור: ' + errors.join(', '), 'error');
+    document.getElementById(firstError).focus();
+    return false;
+  }
+  return true;
+}
+
+function countWords(txt) {
+  return txt.trim() ? txt.trim().split(/\s+/).length : 0;
+}
+
+// ============================================================
+// PROCESS LESSON
+// ============================================================
+async function processLesson() {
+  if (!validateFields()) return;
+  if (!settings.apiKey) { openSettings(); return; }
+
+  const rabbi = document.getElementById('rabbi-name').value.trim();
+  const lessonNum = document.getElementById('lesson-number').value.trim();
+  const transcription = document.getElementById('transcription-input').value.trim();
+  const topicInput = document.getElementById('lesson-topic').value.trim();
+  const tagsInput = document.getElementById('lesson-tags').value.trim();
+  const s3 = document.getElementById('stage3-level').value;
+  const s4 = document.getElementById('stage4-level').value;
+  const wordCount = countWords(transcription);
+
+  // Check min length
+  if (wordCount < 50) {
+    const cont = await showConfirmAsync(
+      'טקסט קצר מדי',
+      `הטקסט שהוזן קצר מאוד (${wordCount} מילים). ייתכן שזה לא שיעור מלא.\n\nהאם להמשיך בכל זאת?`
+    );
+    if (!cont) return;
+  }
+
+  const s3Label = {long:'ארוך (~70%)', medium:'בינוני (~60%)', short:'קצר (~45%)'}[s3];
+  const s4Label = {detailed:'נקודות מפורטות', medium:'נקודות בינוניות', short:'נקודות קצרות מאוד'}[s4];
+
+  showLoading('מנתח את השיעור...', 8);
+
+  try {
+    let fullResponse;
+
+    // Split long texts (>3000 words = split into chunks)
+    if (wordCount > 3000) {
+      fullResponse = await processLongText(transcription, rabbi, lessonNum, topicInput, s3, s4, s3Label, s4Label, wordCount);
+    } else {
+      updateLoading('שולח לעיבוד...', 20);
+      const prompt = buildPrompt(transcription, rabbi, lessonNum, topicInput, s3, s4, s3Label, s4Label);
+      fullResponse = await callAPI(prompt);
+      updateLoading('מעבד תוצאות...', 80);
+    }
+
+    const parsed = parseResponse(fullResponse);
+
+    // Validate all 4 stages returned
+    const missingStages = [];
+    if (!parsed.stage1) missingStages.push('שלב 1');
+    if (!parsed.stage2) missingStages.push('שלב 2');
+    if (!parsed.stage3) missingStages.push('שלב 3');
+    if (!parsed.stage4) missingStages.push('שלב 4');
+    if (missingStages.length) {
+      hideLoading();
+      showAlert('אירעה שגיאה בעיבוד: השלבים הבאים לא חזרו מהמודל: ' + missingStages.join(', ') + '. נסה שוב.', 'error');
+      return;
+    }
+
+    updateLoading('שומר תוצאות...', 92);
+    const topic = parsed.topic || topicInput || 'שיעור תורה';
+    const tags = tagsInput ? tagsInput.split(',').map(t=>t.trim()).filter(Boolean) : (parsed.tags||[]);
+
+    // Versions logic
+    const existingIdx = lessons.findIndex(l =>
+      l.rabbi === rabbi && l.lessonNum === lessonNum
+    );
+
+    let versionNum = 1;
+    let lessonId = Date.now().toString();
+
+    if (existingIdx >= 0) {
+      const existing = lessons[existingIdx];
+      // Keep old versions
+      const oldVersions = existing.versions || [];
+      const prevVersion = {
+        versionNum: existing.versionNum || 1,
+        date: existing.date,
+        topic: existing.topic,
+        stage1: existing.stage1,
+        stage2: existing.stage2,
+        stage3: existing.stage3,
+        stage4: existing.stage4,
+        sources: existing.sources
+      };
+      oldVersions.push(prevVersion);
+      versionNum = (existing.versionNum || 1) + 1;
+      lessonId = existing.id;
+
+      currentLesson = {
+        ...existing,
+        versionNum,
+        topic, tags,
+        date: new Date().toLocaleDateString('he-IL'),
+        wordCount,
+        s3Level: s3Label, s4Level: s4Label,
+        original: transcription,
+        stage1: parsed.stage1,
+        stage2: parsed.stage2,
+        stage3: parsed.stage3,
+        stage4: parsed.stage4,
+        sources: parsed.sources,
+        versions: oldVersions
+      };
+      lessons[existingIdx] = currentLesson;
+    } else {
+      currentLesson = {
+        id: lessonId, rabbi, lessonNum, topic, tags,
+        date: new Date().toLocaleDateString('he-IL'),
+        wordCount, versionNum: 1,
+        s3Level: s3Label, s4Level: s4Label,
+        original: transcription,
+        stage1: parsed.stage1,
+        stage2: parsed.stage2,
+        stage3: parsed.stage3,
+        stage4: parsed.stage4,
+        sources: parsed.sources,
+        versions: []
+      };
+      lessons.unshift(currentLesson);
+    }
+
+    saveToStorage();
+    clearDraft();
+    localStorage.removeItem('torah_draft');
+
+    updateLoading('מבצע בדיקות איכות...', 97);
+
+    // Quality checks
+    const qResults = runQualityChecks(currentLesson, s3, s4);
+
+    hideLoading();
+    displayResult(currentLesson);
+
+    // Show quality if warnings
+    const warnings = qResults.filter(r => r.type !== 'ok');
+    if (warnings.length) {
+      displayQualityAlerts(warnings);
+    }
+
+  } catch(err) {
+    hideLoading();
+    const msg = err.message || '';
+    let heMsg = 'אירעה שגיאה בעיבוד השיעור. נסה שוב.';
+    if (msg.includes('401') || msg.includes('auth')) heMsg = 'מפתח API שגוי. בדוק את ההגדרות.';
+    else if (msg.includes('429')) heMsg = 'חריגה ממכסת API. נסה שוב מאוחר יותר.';
+    else if (msg.includes('500')) heMsg = 'שגיאת שרת. נסה שוב.';
+    else if (msg.includes('network') || msg.includes('fetch')) heMsg = 'בעיית חיבור לאינטרנט. בדוק את החיבור ונסה שוב.';
+    showAlert(heMsg, 'error');
+  }
+}
+
+// ============================================================
+// LONG TEXT PROCESSING
+// ============================================================
+async function processLongText(text, rabbi, lessonNum, topicInput, s3, s4, s3Label, s4Label, wordCount) {
+  const CHUNK_SIZE = 2500; // words per chunk
+  const words = text.split(/\s+/);
+  const chunks = [];
+  let start = 0;
+
+  updateLoading('מחלק טקסט ארוך לחלקים...', 10);
+  showLoadingSteps('הטקסט ארוך מדי לעיבוד אחד\nמחלק ל' + Math.ceil(words.length / CHUNK_SIZE) + ' חלקים');
+
+  while (start < words.length) {
+    let end = Math.min(start + CHUNK_SIZE, words.length);
+    // Don't cut mid-sentence — find last period/newline
+    if (end < words.length) {
+      const chunk = words.slice(start, end).join(' ');
+      const lastBreak = Math.max(chunk.lastIndexOf('\n'), chunk.lastIndexOf('.'), chunk.lastIndexOf('!'), chunk.lastIndexOf('?'));
+      if (lastBreak > chunk.length * 0.7) {
+        const wordsToBreak = chunk.substring(0, lastBreak).split(/\s+/).length;
+        end = start + wordsToBreak;
+      }
+    }
+    chunks.push(words.slice(start, end).join(' '));
+    start = end;
+  }
+
+  const results = [];
+  for (let i = 0; i < chunks.length; i++) {
+    const pct = Math.round(10 + (i / chunks.length) * 65);
+    updateLoading(`מעבד חלק ${i+1} מתוך ${chunks.length}...`, pct);
+    showLoadingSteps(`חלק ${i+1}/${chunks.length} — ${countWords(chunks[i])} מילים`);
+
+    const isFirst = i === 0;
+    const isLast = i === chunks.length - 1;
+    const chunkPrompt = buildChunkPrompt(chunks[i], rabbi, lessonNum, i+1, chunks.length, isFirst, isLast, s3, s4, s3Label, s4Label, topicInput);
+    const resp = await callAPI(chunkPrompt);
+    results.push(resp);
+    await new Promise(r => setTimeout(r, 400)); // small delay
+  }
+
+  // Verify all chunks returned
+  if (results.length !== chunks.length) {
+    throw new Error(`חלקים שנשלחו: ${chunks.length}, חלקים שחזרו: ${results.length}. חסרים חלקים.`);
+  }
+
+  updateLoading('מאחד חלקים...', 78);
+
+  // Merge chunks
+  return mergeChunkResults(results, chunks.length);
+}
+
+function buildChunkPrompt(text, rabbi, lessonNum, chunkNum, totalChunks, isFirst, isLast, s3, s4, s3Label, s4Label, topicInput) {
+  const s3Pct = {long:'~70%', medium:'~60%', short:'~45%'}[s3];
+  const s4Desc = {detailed:'נקודות מפורטות (כולל כל המהלך, מקורות, משלים, מסקנות)', medium:'נקודות בינוניות (נושא, עיקרי מהלך, מקורות עיקריים, מסקנות)', short:'5-10 נקודות קצרות בלבד'}[s4];
+
+  return `אתה מעבד חלק ${chunkNum} מתוך ${totalChunks} של שיעור תורה מאת ${rabbi}${lessonNum?' ('+lessonNum+')':''}.
+${!isLast ? 'זהו חלק ביניים — עבד אותו מלא ומדויק.' : 'זהו החלק האחרון.'}
+
+כללי יסוד מוחלטים:
+- אסור להוסיף תוכן שלא בטקסט
+- אסור להוסיף מקורות שלא הוזכרו  
+- לשמור על לשון תורנית וישיבתית
+- אם ספק — אל תוסיף, אל תתקן
+- מילה לא ברורה → [לא ברור]
+
+החזר בפורמט מדויק:
+
+===STAGE1===
+תמלול מסודר מלא של חלק זה, ללא קיצורים כלל.${!isLast?'\n[המשך יבוא]':''}
+
+===STAGE2===
+סיכום מורחב של חלק זה (~90% מהמקור).${!isLast?'\n[המשך יבוא]':''}
+
+===STAGE3===
+סיכום בינוני של חלק זה (${s3Pct} מהמקור).${!isLast?'\n[המשך יבוא]':''}
+
+===STAGE4===
+${s4Desc} — של חלק זה.${!isLast?'\n[המשך יבוא]':''}
+
+${isFirst ? `===TOPIC===\n${topicInput||'הצע נושא קצר ומדויק המבוסס על תוכן השיעור (ענייני, לא דרמטי)'}\n\n` : ''}${isLast ? '===SOURCES===\nרק מקורות שהופיעו בפועל בכל הטקסט. כל מקור בשורה.\n\n===TAGS===\n3-6 תגיות קצרות. כל תגית בשורה.\n\n' : ''}===END===
+
+הטקסט לעיבוד:
+${text}`;
+}
+
+function mergeChunkResults(results, totalChunks) {
+  // Extract each stage from all chunks and merge
+  const merged = { stage1:[], stage2:[], stage3:[], stage4:[], topic:'', sources:[], tags:[] };
+
+  results.forEach((res, i) => {
+    const get = (key) => {
+      const re = new RegExp('===' + key + '===\\s*([\\s\\S]*?)(?====|$)');
+      const m = res.match(re);
+      return m ? m[1].trim().replace(/\[המשך יבוא\]\s*$/,'').trim() : '';
+    };
+    merged.stage1.push(get('STAGE1'));
+    merged.stage2.push(get('STAGE2'));
+    merged.stage3.push(get('STAGE3'));
+    merged.stage4.push(get('STAGE4'));
+    if (i === 0 && get('TOPIC')) merged.topic = get('TOPIC');
+    if (i === results.length - 1) {
+      const src = get('SOURCES');
+      merged.sources = src ? src.split('\n').map(s=>s.trim()).filter(Boolean) : [];
+      const tags = get('TAGS');
+      merged.tags = tags ? tags.split('\n').map(t=>t.trim()).filter(Boolean) : [];
+    }
+  });
+
+  // Build unified response string
+  return `===TOPIC===\n${merged.topic}\n===STAGE1===\n${merged.stage1.join('\n\n')}\n===STAGE2===\n${merged.stage2.join('\n\n')}\n===STAGE3===\n${merged.stage3.join('\n\n')}\n===STAGE4===\n${merged.stage4.join('\n\n')}\n===SOURCES===\n${merged.sources.join('\n')}\n===TAGS===\n${merged.tags.join('\n')}\n===END===`;
+}
+
+// ============================================================
+// PROMPT & API
+// ============================================================
+function buildPrompt(text, rabbi, lessonNum, topicInput, s3, s4, s3Label, s4Label) {
+  const s3Pct = {long:'כ-70% מהמקור', medium:'כ-60% מהמקור', short:'כ-45% מהמקור'}[s3];
+  const s4Desc = {
+    detailed:'נקודות מפורטות: כולל נושא, מהלך מרכזי, מקורות, משלים, מסקנות, נקודות חיזוק',
+    medium:'נקודות בינוניות: נושא, עיקרי מהלך, מקורות עיקריים, מסקנות',
+    short:'5-10 נקודות קצרות מאוד, עיקרי הדברים ממש'
+  }[s4];
+
+  return `אתה מקבל תמלול של שיעור תורה מאת ${rabbi}${lessonNum?' ('+lessonNum+')':''}.
+
+כללי יסוד מוחלטים — חייב לקיים:
+• אסור להוסיף תוכן שלא בטקסט המקורי
+• אסור להוסיף מקורות שלא הוזכרו בשיעור
+• אסור להוסיף הסברים, מסקנות, רעיונות מבחוץ
+• אסור להמציא שמות ספרים, דפי גמרא, רבנים
+• לשמור על לשון תורנית וישיבתית לאורך כל העיבוד
+• שמור על: חז"ל, גמרא, רש"י, תוספות, רמב"ם, זצ"ל, שליט"א
+• אם "הגמרא אומרת" בלי פירוט — תכתוב "הגמרא אומרת" בלבד, לא להמציא דף
+• מילה לא ברורה → [לא ברור]
+• ספק → אל תוסיף, אל תתקן
+
+החזר בפורמט הבא בדיוק:
+
+===TOPIC===
+${topicInput||'הצע נושא קצר ומדויק המבוסס על תוכן השיעור. ענייני ונאמן לתוכן, לא דרמטי ולא מגזים. ללא מילים כמו: סוד, מדהים, מובטח, הדרך הבטוחה.'}
+
+===STAGE1===
+תמלול מסודר ומלא — הטקסט כולו בפסקאות, ללא קיצורים, ללא שינויי תוכן. חלק לפסקאות. הוסף כותרות ביניים רק אם ממש מועיל. תקן רק טעויות תמלול ברורות.
+
+===STAGE2===
+סיכום מורחב ~90% מהמקור — ברור ומסודר אבל כמעט ללא קיצורים. שמור כל מהלך, מקור, משל, מסקנה. הוסף כותרות משנה.
+
+===STAGE3===
+סיכום בינוני — ${s3Pct}. שמור המהלך המרכזי, מקורות עיקריים, מסקנות. קצר חזרות ואריכות. לא נקודות.
+
+===STAGE4===
+${s4Desc}.
+
+===SOURCES===
+רק מקורות שהופיעו בפועל: פסוקים, גמרות, רש"י, ספרים, רבנים שצוטטו. אם לא הופיע — לא לרשום. כל מקור בשורה.
+
+===TAGS===
+3-6 תגיות רלוונטיות לתוכן בלבד. כל תגית בשורה.
+
+===END===
+
+תמלול השיעור:
+${text}`;
+}
+
+async function callAPI(prompt) {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':settings.apiKey,'anthropic-version':'2023-06-01'},
+    body: JSON.stringify({ model:'claude-opus-4-6', max_tokens:8000, messages:[{role:'user',content:prompt}] })
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(()=>({}));
+    throw new Error(err.error?.message || 'API error ' + response.status);
+  }
+  const data = await response.json();
+  return data.content[0].text;
+}
+
+function parseResponse(text) {
+  const get = (key) => {
+    const re = new RegExp('===' + key + '===\\s*([\\s\\S]*?)(?====|$)');
+    const m = text.match(re);
+    return m ? m[1].trim() : '';
+  };
+  return {
+    topic: get('TOPIC'),
+    stage1: get('STAGE1'),
+    stage2: get('STAGE2'),
+    stage3: get('STAGE3'),
+    stage4: get('STAGE4'),
+    sources: (get('SOURCES')||'').split('\n').map(s=>s.trim()).filter(Boolean),
+    tags: (get('TAGS')||'').split('\n').map(t=>t.trim()).filter(Boolean)
+  };
+}
+
+// ============================================================
+// QUALITY CHECKS
+// ============================================================
+function runQualityChecks(lesson, s3Level, s4Level) {
+  const results = [];
+  const origWords = countWords(lesson.original);
+  const s1Words = countWords(lesson.stage1);
+  const s2Words = countWords(lesson.stage2);
+  const s3Words = countWords(lesson.stage3);
+  const s4Text = lesson.stage4 || '';
+
+  // 1. Stage 1 not too short (should be ≥90% of original)
+  if (origWords > 50) {
+    const ratio1 = s1Words / origWords;
+    if (ratio1 < 0.9) {
+      results.push({type:'warning', code:'s1-short',
+        msg:`שלב 1 (תמלול מסודר) קצר משמעותית מהמקור (${Math.round(ratio1*100)}%). ייתכן שחלק מהטקסט הושמט.`});
+    } else {
+      results.push({type:'ok', code:'s1-length', msg:'שלב 1 — אורך תקין'});
+    }
+  }
+
+  // 2. Stage 2 ~90% (75%-105%)
+  if (origWords > 50) {
+    const ratio2 = s2Words / origWords;
+    if (ratio2 < 0.75) {
+      results.push({type:'warning', code:'s2-short',
+        msg:`שלב 2 (סיכום מורחב) קצר מדי (${Math.round(ratio2*100)}%). אמור להיות ~90% מהמקור.`});
+    } else if (ratio2 > 1.05) {
+      results.push({type:'warning', code:'s2-long',
+        msg:`שלב 2 ארוך מהמקור (${Math.round(ratio2*100)}%). ייתכן שנוסף תוכן שלא היה בשיעור.`});
+    } else {
+      results.push({type:'ok', code:'s2-length', msg:'שלב 2 — אורך תקין'});
+    }
+  }
+
+  // 3. Stage 3 length per chosen level
+  if (origWords > 50) {
+    const ratio3 = s3Words / origWords;
+    const ranges = {long:[0.60,0.80], medium:[0.50,0.70], short:[0.35,0.55]};
+    const [min, max] = ranges[s3Level] || ranges.medium;
+    if (ratio3 < min || ratio3 > max) {
+      results.push({type:'warning', code:'s3-range',
+        msg:`שלב 3 אינו תואם לרמה שנבחרה (${Math.round(ratio3*100)}%, צפוי ${Math.round(min*100)}%-${Math.round(max*100)}%).`});
+    } else {
+      results.push({type:'ok', code:'s3-range', msg:'שלב 3 — אורך תואם לרמה שנבחרה'});
+    }
+  }
+
+  // 4. Stage 4 should have bullet-like structure
+  const bulletChars = (s4Text.match(/[•\-\*\n]/g)||[]).length;
+  const s4Lines = s4Text.split('\n').filter(l=>l.trim()).length;
+  if (s4Lines < 3) {
+    results.push({type:'warning', code:'s4-bullets',
+      msg:'שלב 4 אינו נראה כסיכום בנקודות. אמור להכיל נקודות מסודרות.'});
+  } else {
+    results.push({type:'ok', code:'s4-bullets', msg:'שלב 4 — מבנה נקודות תקין'});
+  }
+
+  // 5. Check for interpretive phrases in stage 1
+  const interpretivePhrases = ['כלומר ניתן להבין','נראה לומר ש','נוכל ללמוד מכאן','סיכום הדברים הוא','המסר המרכזי הוא','ניתן להוסיף','במילים אחרות'];
+  const s1Lower = (lesson.stage1||'').toLowerCase();
+  const origLower = (lesson.original||'').toLowerCase();
+  const foundInterpretive = interpretivePhrases.filter(p => s1Lower.includes(p) && !origLower.includes(p));
+  if (foundInterpretive.length) {
+    results.push({type:'warning', code:'s1-interpretive',
+      msg:`ייתכן שנוסף ניסוח פרשני בשלב 1 שלא היה במקור. יש לבדוק: "${foundInterpretive[0]}"`});
+  } else {
+    results.push({type:'ok', code:'s1-interpretive', msg:'שלב 1 — לא זוהו ביטויים פרשניים'});
+  }
+
+  // 6. Check dramatic topic
+  const dramaticWords = ['סוד','מדהים','מובטח','הדרך הבטוחה','להינצל מכל','הפתרון היחיד','מהפך רוחני','בטוח לחלוטין'];
+  const topicLower = (lesson.topic||'').toLowerCase();
+  const foundDramatic = dramaticWords.filter(w => topicLower.includes(w));
+  if (foundDramatic.length) {
+    results.push({type:'warning', code:'topic-dramatic',
+      msg:`נושא השיעור נשמע דרמטי מדי. מומלץ לערוך לניסוח ענייני יותר.`});
+  } else {
+    results.push({type:'ok', code:'topic-ok', msg:'נושא השיעור — ענייני'});
+  }
+
+  // 7. Check sources appear in original
+  const suspectSources = (lesson.sources||[]).filter(src => {
+    const srcClean = src.replace(/['"״׳]/g,'').trim().toLowerCase();
+    if (srcClean.length < 3) return false;
+    // Check if main words of source appear in original
+    const srcWords = srcClean.split(/\s+/).filter(w=>w.length>2);
+    const found = srcWords.filter(w => origLower.includes(w));
+    return found.length === 0;
+  });
+  if (suspectSources.length) {
+    results.push({type:'warning', code:'sources-added',
+      msg:`ייתכן שנוסף מקור שלא הופיע בשיעור. יש לבדוק: "${suspectSources[0]}"`});
+  } else if (lesson.sources.length > 0) {
+    results.push({type:'ok', code:'sources-ok', msg:'מקורות — נמצאו בטקסט המקורי'});
+  }
+
+  // 8. Headline check (kinda)
+  const dramaticHeadlines = ['הסוד','מדהים','מובטח','הדרך הבטוחה'];
+  const s1Stage = lesson.stage1 || '';
+  const badHeadlines = dramaticHeadlines.filter(w => s1Stage.includes(w));
+  if (badHeadlines.length) {
+    results.push({type:'warning', code:'headlines-dramatic', msg:`כותרת בשלב 1 עשויה להיות דרמטית מדי.`});
+  }
+
+  return results;
+}
+
+function displayQualityAlerts(warnings) {
+  const container = document.getElementById('quality-alerts-container');
+  container.innerHTML = warnings.slice(0,3).map(w => `
+    <div class="alert alert-warning">⚠ ${w.msg}</div>
+  `).join('');
+}
+
+function showQuality() {
+  if (!currentLesson) return;
+  const s3 = ({'ארוך (~70%)':'long','בינוני (~60%)':'medium','קצר (~45%)':'short'})[currentLesson.s3Level] || 'medium';
+  const s4 = ({'נקודות מפורטות':'detailed','נקודות בינוניות':'medium','נקודות קצרות מאוד':'short'})[currentLesson.s4Level] || 'medium';
+  const results = runQualityChecks(currentLesson, s3, s4);
+  const html = results.map(r => `
+    <div class="quality-item">
+      <span class="quality-icon">${r.type==='ok'?'✅':'⚠️'}</span>
+      <span style="font-size:.88rem;color:${r.type==='ok'?'var(--success)':'#7a5c10'}">${r.msg}</span>
+    </div>
+  `).join('');
+  document.getElementById('quality-report').innerHTML = '<div class="quality-panel">' + html + '</div>';
+  document.getElementById('quality-modal').classList.add('open');
+}
+
+// ============================================================
+// DISPLAY RESULT
+// ============================================================
+function displayResult(lesson) {
+  document.getElementById('result-main-title').textContent = lesson.topic || 'תוצאת עיבוד';
+  document.getElementById('result-sub-title').textContent = lesson.rabbi + (lesson.lessonNum?' | '+lesson.lessonNum:'');
+  document.getElementById('meta-rabbi').textContent = lesson.rabbi;
+  document.getElementById('meta-number').textContent = lesson.lessonNum||'—';
+  document.getElementById('meta-topic').textContent = lesson.topic;
+  document.getElementById('meta-date').textContent = lesson.date;
+  document.getElementById('meta-words').textContent = lesson.wordCount.toLocaleString('he-IL');
+  document.getElementById('meta-s3').textContent = lesson.s3Level;
+  document.getElementById('meta-s4').textContent = lesson.s4Level;
+  document.getElementById('meta-version').textContent = 'גרסה ' + (lesson.versionNum||1);
+  const tagsEl = document.getElementById('meta-tags');
+  tagsEl.innerHTML = lesson.tags?.length ? lesson.tags.map(t=>`<span class="tag">${t}</span>`).join('') : '—';
+
+  document.getElementById('result-original').textContent = lesson.original;
+  document.getElementById('result-stage1').textContent = lesson.stage1;
+  document.getElementById('result-stage2').textContent = lesson.stage2;
+  document.getElementById('result-stage3').textContent = lesson.stage3;
+  document.getElementById('result-stage4').textContent = lesson.stage4;
+
+  const sourcesEl = document.getElementById('result-sources');
+  sourcesEl.innerHTML = lesson.sources?.length
+    ? lesson.sources.map(s=>`<div class="source-item"><div class="source-dot"></div><div style="font-family:'Frank Ruhl Libre',serif;font-size:.95rem;">${s}</div></div>`).join('')
+    : '<p style="color:var(--text3);font-size:.9rem;">לא זוהו מקורות מפורשים בשיעור</p>';
+
+  // Versions tab
+  renderVersions(lesson);
+
+  document.getElementById('quality-alerts-container').innerHTML = '';
+  document.getElementById('result-nav-btn').style.display = '';
+  switchTab('tab-meta');
+  showPage('result');
+}
+
+function renderVersions(lesson) {
+  const container = document.getElementById('versions-list');
+  const versions = lesson.versions || [];
+  if (!versions.length) {
+    container.innerHTML = '<p style="color:var(--text3);font-size:.9rem;">זוהי הגרסה הראשונה של השיעור.</p>';
+    return;
+  }
+  const allVersions = [...versions, {versionNum: lesson.versionNum||1, date: lesson.date, topic: lesson.topic, isCurrent: true}];
+  container.innerHTML = allVersions.reverse().map(v => `
+    <div class="version-item" style="padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);display:flex;align-items:center;gap:8px;margin-bottom:8px;${v.isCurrent?'background:var(--accent-bg);border-color:var(--accent2);':''}">
+      <span style="font-size:.88rem;font-weight:500;">גרסה ${v.versionNum}</span>
+      <span style="font-size:.8rem;color:var(--text3);">${v.date}</span>
+      <span style="flex:1;font-size:.85rem;color:var(--text2);">${v.topic||''}</span>
+      ${v.isCurrent ? '<span style="font-size:.75rem;background:var(--accent);color:#fff;padding:2px 8px;border-radius:20px;">נוכחית</span>' :
+        `<button class="btn btn-sm btn-secondary" onclick="loadVersion(${v.versionNum-1})">פתח</button>`}
+    </div>
+  `).join('');
+}
+
+function loadVersion(idx) {
+  if (!currentLesson || !currentLesson.versions[idx]) return;
+  const v = currentLesson.versions[idx];
+  const tmp = {...currentLesson, ...v, versions: currentLesson.versions, id: currentLesson.id};
+  displayResult(tmp);
+  showToast('גרסה ' + v.versionNum + ' נטענה');
+}
+
+// ============================================================
+// SAVE TO LIBRARY
+// ============================================================
+function saveToLibrary() {
+  if (!currentLesson) return;
+  const existing = lessons.findIndex(l => l.id === currentLesson.id);
+  if (existing >= 0) lessons[existing] = currentLesson;
+  else lessons.unshift(currentLesson);
+  saveToStorage();
+  showToast('השיעור נשמר לספרייה ✓');
+}
+
+// ============================================================
+// LIBRARY
+// ============================================================
+function renderLibrary() {
+  document.getElementById('library-count-sub').textContent = lessons.length + ' שיעורים שמורים';
+  updateRabbiFilter();
+  filterLibrary();
+}
+
+function updateRabbiFilter() {
+  const sel = document.getElementById('lib-filter-rabbi');
+  const cur = sel.value;
+  const rabbis = [...new Set(lessons.map(l=>l.rabbi))].sort();
+  sel.innerHTML = '<option value="">כל הרבנים</option>' + rabbis.map(r=>`<option value="${esc(r)}">${r}</option>`).join('');
+  sel.value = cur;
+}
+
+function filterLibrary() {
+  const q = document.getElementById('lib-search-input').value.trim().toLowerCase();
+  const rf = document.getElementById('lib-filter-rabbi').value;
+  let filtered = lessons;
+  if (rf) filtered = filtered.filter(l => l.rabbi === rf);
+  if (q) filtered = filtered.filter(l =>
+    l.rabbi.toLowerCase().includes(q) ||
+    l.topic.toLowerCase().includes(q) ||
+    (l.lessonNum&&l.lessonNum.toLowerCase().includes(q)) ||
+    (l.tags||[]).some(t=>t.toLowerCase().includes(q)) ||
+    l.original.toLowerCase().includes(q) ||
+    (l.stage1&&l.stage1.toLowerCase().includes(q))
+  );
+  const container = document.getElementById('library-list');
+  if (!filtered.length) {
+    container.innerHTML = `<div class="empty-state"><div class="ei">📚</div><p>${lessons.length?'לא נמצאו שיעורים התואמים את החיפוש':'עדיין אין שיעורים שמורים'}</p></div>`;
+    return;
+  }
+  container.innerHTML = filtered.map(l => `
+    <div class="library-item">
+      <div class="lib-icon">📖</div>
+      <div class="library-item-info">
+        <div class="library-item-title">${l.topic||'שיעור ללא נושא'} <span style="font-size:.75rem;color:var(--text3);">גרסה ${l.versionNum||1}</span></div>
+        <div class="library-item-meta">${l.rabbi}${l.lessonNum?' | '+l.lessonNum:''} | ${l.date} | ${l.wordCount.toLocaleString('he-IL')} מילים</div>
+        <div style="margin-top:4px;">${(l.tags||[]).slice(0,4).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      </div>
+      <div class="library-item-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openLesson('${l.id}')">פתח</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportLessonTXT('${l.id}')">💾</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteLesson('${l.id}')">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openLesson(id) {
+  const lesson = lessons.find(l=>l.id===id);
+  if (!lesson) return;
+  currentLesson = lesson;
+  displayResult(lesson);
+}
+
+function deleteLesson(id) {
+  const lesson = lessons.find(l=>l.id===id);
+  if (!lesson) return;
+  showConfirm('מחיקת שיעור',
+    `האם אתה בטוח שברצונך למחוק את השיעור "${lesson.topic}"?\nפעולה זו לא ניתנת לשחזור.`,
+    () => { lessons = lessons.filter(l=>l.id!==id); saveToStorage(); renderLibrary(); showToast('השיעור נמחק'); }
+  );
+}
+
+// ============================================================
+// COPY & EXPORT
+// ============================================================
+function copyStage(stage) {
+  if (!currentLesson) return;
+  const map = {original:currentLesson.original,stage1:currentLesson.stage1,stage2:currentLesson.stage2,stage3:currentLesson.stage3,stage4:currentLesson.stage4};
+  navigator.clipboard.writeText(map[stage]||'').then(()=>showToast('הועתק ✓'));
+}
+
+function copyAll() {
+  if (!currentLesson) return;
+  const txt = [`שם הרב: ${currentLesson.rabbi}`,`מספר שיעור: ${currentLesson.lessonNum||''}`,`נושא: ${currentLesson.topic}`,`תאריך: ${currentLesson.date}`,'','═══ שלב 1 — תמלול מסודר ═══','',currentLesson.stage1,'','═══ שלב 2 — סיכום מורחב ═══','',currentLesson.stage2,'','═══ שלב 3 — סיכום בינוני ═══','',currentLesson.stage3,'','═══ שלב 4 — נקודות ═══','',currentLesson.stage4,'','═══ מקורות ═══','',(currentLesson.sources||[]).join('\n')].join('\n');
+  navigator.clipboard.writeText(txt).then(()=>showToast('כל השיעור הועתק ✓'));
+}
+
+function exportTXT() { if (currentLesson) exportLessonContent(currentLesson); }
+function exportLessonTXT(id) { const l=lessons.find(l=>l.id===id); if(l) exportLessonContent(l); }
+
+function exportLessonContent(lesson) {
+  const txt = [`עיבוד שיעורי תורה`,'═'.repeat(40),`שם הרב: ${lesson.rabbi}`,`מספר שיעור: ${lesson.lessonNum||''}`,`נושא: ${lesson.topic}`,`תאריך: ${lesson.date}`,`גרסה: ${lesson.versionNum||1}`,`מילים מקוריות: ${lesson.wordCount}`,'','═══ שלב 1 — תמלול מסודר ═══','',lesson.stage1,'','═══ שלב 2 — סיכום מורחב מאוד ═══','',lesson.stage2,'','═══ שלב 3 — סיכום בינוני ═══',`(${lesson.s3Level})`,'',lesson.stage3,'','═══ שלב 4 — סיכום בנקודות ═══',`(${lesson.s4Level})`,'',lesson.stage4,'','═══ מקורות שהוזכרו ═══','',(lesson.sources||[]).length?(lesson.sources).join('\n'):'לא זוהו מקורות מפורשים'].join('\n');
+  const blob = new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const fname = [lesson.rabbi,lesson.lessonNum,lesson.topic].filter(Boolean).join('_').replace(/\s+/g,'_').replace(/[^\u0590-\u05FF\w_]/g,'')||'שיעור';
+  a.download = fname+'.txt';
+  a.click();
+}
+
+// ============================================================
+// SEARCH IN LESSON
+// ============================================================
+function searchInLesson() {
+  const q = document.getElementById('in-search-input').value.trim();
+  const type = document.getElementById('search-type').value;
+  const scope = document.getElementById('search-scope').value;
+  const infoEl = document.getElementById('search-results-info');
+  const container = document.getElementById('search-results-container');
+
+  if (!q || !currentLesson) { infoEl.textContent=''; container.innerHTML=''; document.getElementById('search-nav').style.display='none'; searchResults=[]; return; }
+
+  const stageMap = {
+    'all-stages':[['שלב 1',currentLesson.stage1],['שלב 2',currentLesson.stage2],['שלב 3',currentLesson.stage3],['שלב 4',currentLesson.stage4]],
+    'stage1':[['שלב 1',currentLesson.stage1]],
+    'stage2':[['שלב 2',currentLesson.stage2]],
+    'stage3':[['שלב 3',currentLesson.stage3]],
+    'stage4':[['שלב 4',currentLesson.stage4]],
+    'original':[['טקסט מקורי',currentLesson.original]]
+  };
+  const stages = stageMap[scope] || stageMap['all-stages'];
+
+  searchResults = [];
+  stages.forEach(([label, text]) => {
+    if (!text) return;
+    text.split('\n').filter(p=>p.trim()).forEach(para => {
+      if (checkMatch(para, q, type)) searchResults.push({label, para, q, type});
+    });
+  });
+
+  searchIdx = 0;
+  const count = searchResults.length;
+  infoEl.textContent = count ? `נמצאו ${count} תוצאות` : 'לא נמצאו תוצאות';
+  const navEl = document.getElementById('search-nav');
+  navEl.style.display = count ? 'flex' : 'none';
+  updateSearchNav();
+
+  container.innerHTML = searchResults.slice(0,40).map((r,i) => `
+    <div id="sr-${i}" style="margin-bottom:.75rem;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);border-right:3px solid var(--gold);">
+      <div style="font-size:.75rem;color:var(--text3);margin-bottom:4px;">${r.label}</div>
+      <div style="font-size:.9rem;line-height:1.7;font-family:'Frank Ruhl Libre',serif;">${highlightText(r.para,r.q,r.type)}</div>
+    </div>
+  `).join('');
+}
+
+function navSearch(dir) {
+  searchIdx = Math.max(0, Math.min(searchResults.length-1, searchIdx+dir));
+  updateSearchNav();
+  const el = document.getElementById('sr-' + searchIdx);
+  if (el) el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function updateSearchNav() {
+  const lbl = document.getElementById('search-nav-label');
+  if (searchResults.length) lbl.textContent = `${searchIdx+1} / ${searchResults.length}`;
+}
+
+function clearSearch() {
+  document.getElementById('in-search-input').value='';
+  document.getElementById('search-results-info').textContent='';
+  document.getElementById('search-results-container').innerHTML='';
+  document.getElementById('search-nav').style.display='none';
+  searchResults=[];
+}
+
+function checkMatch(text, q, type) {
+  const t=text.toLowerCase(), words=q.toLowerCase().split(/\s+/);
+  if(type==='exact') return t.includes(q.toLowerCase());
+  if(type==='all') return words.every(w=>t.includes(w));
+  return words.some(w=>t.includes(w));
+}
+
+function highlightText(text, q, type) {
+  const words = type==='exact'?[q]:q.split(/\s+/);
+  let result = esc(text);
+  words.forEach(w => { if(!w) return; result=result.replace(new RegExp(escRe(w),'gi'),m=>`<mark>${m}</mark>`); });
+  return result;
+}
+
+function showLoading(msg, pct) {
+  document.getElementById('loading-overlay').classList.add('show');
+  document.getElementById('loading-text').textContent = msg;
+  document.getElementById('progress-fill').style.width = pct+'%';
+  document.getElementById('loading-steps').textContent = '';
+}
+function updateLoading(msg, pct) {
+  document.getElementById('loading-text').textContent = msg;
+  document.getElementById('progress-fill').style.width = pct+'%';
+}
+function showLoadingSteps(txt) { document.getElementById('loading-steps').textContent = txt; }
+function hideLoading() { document.getElementById('loading-overlay').classList.remove('show'); }
+
+let confirmCallback = null;
+function showConfirm(title, msg, cb) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-ok-btn').textContent = 'אשר';
+  document.getElementById('confirm-ok-btn').className = 'btn btn-danger';
+  confirmCallback = cb;
+  document.getElementById('confirm-modal').classList.add('open');
+  document.getElementById('confirm-ok-btn').onclick = () => { closeConfirm(); if(confirmCallback) confirmCallback(); };
+}
+function closeConfirm() { document.getElementById('confirm-modal').classList.remove('open'); }
+
+function showConfirmAsync(title, msg) {
+  return new Promise(resolve => {
+    document.getElementById('confirm-title').textContent = title;
+    document.getElementById('confirm-msg').textContent = msg;
+    document.getElementById('confirm-ok-btn').textContent = 'המשך';
+    document.getElementById('confirm-ok-btn').className = 'btn btn-primary';
+    document.getElementById('confirm-modal').classList.add('open');
+    document.getElementById('confirm-ok-btn').onclick = () => { closeConfirm(); resolve(true); };
+    const cancelBtn = document.querySelector('#confirm-modal .btn-secondary');
+    cancelBtn.onclick = () => { closeConfirm(); resolve(false); };
+  });
+}
+
+function showAlert(msg, type) {
+  const existing = document.getElementById('inline-alert');
+  if (existing) existing.remove();
+  const div = document.createElement('div');
+  div.id = 'inline-alert';
+  div.className = `alert alert-${type==='error'?'error':type==='success'?'success':'warning'}`;
+  div.textContent = msg;
+  const page = document.getElementById('page-new-lesson');
+  page.insertBefore(div, page.querySelector('.card'));
+  div.scrollIntoView({behavior:'smooth',block:'nearest'});
+  if (type === 'success') setTimeout(() => div.remove(), 4000);
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 20px;border-radius:24px;font-size:.88rem;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,.2);transition:opacity .3s;';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},2000);
+}
+
+function esc(str){return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escRe(str){return str.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+
+init();
+</script>
+</body>
+</html>
